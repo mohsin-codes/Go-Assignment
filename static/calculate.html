@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <title>Area Calculation</title>
+</head>
+<body class="p-3 mb-2 bg-primary text-white" style="display:inline-block; text-align: center; width: 100%; height: 100%;">
+    <div style="width: 100%; height: 100%; padding-top: 10vw;">
+        <h2>Calculate</h2>
+    </div>
+    <form method= "POST" action="/calculate/area">
+        <div class="form-group">
+            <label for="string" class="col-sm-6 col-form-label">Input string</label>
+            <div class="col-sm-3 w-25">
+            <input type="text" class="form-control text-center"  name="string" style="margin-left: 37vw;" id="string" placeholder="Write Here">
+            </div>
+        </div>
+        <fieldset id="group1">
+            <input class = "m-2" type="radio" value="rect" name="group1">Rectangle
+            <input class = "m-2" type="radio" value="circle" name="group1">Circle
+            <input class = "m-2" type="radio" value="square" name="group1">Square
+            <input class = "m-2" type="radio" value="all" name="group1">All
+        </fieldset>
+        <input class="btn btn-lg btn-success" type="submit" value="Submit">
+    </form>
+    <footer class="footer fixed-bottom bg-dark pb-3" style="text-align: center;">
+        ©Nagarro Pvt. Ltd
+   </footer>
+</body>
+</html>
