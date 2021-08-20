@@ -6,21 +6,20 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
+	// "time"
 )
 
-
-// func healthHandler(w http.ResponseWriter, r *http.Request) {
-// 	if r.URL.Path != "/health" {
-// 		http.Error(w, "404 not found", http.StatusNotFound)
-// 		return
-// 	}
-// 	if r.Method != "GET" {
-// 		http.Error(w, "Method is not supported", http.StatusNotFound)
-// 		return
-// 	}
-// 	fmt.Fprint(w, "Content Not Found : ", http.StatusNoContent)
-// }
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/health" {
+		http.Error(w, "404 not found", http.StatusNotFound)
+		return
+	}
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported", http.StatusNotFound)
+		return
+	}
+	fmt.Fprint(w, "Content Not Found : ", http.StatusNoContent)
+}
 
 //////////////////////////////////////////////////Manipulation Methods///////////////////////////////////////////////////
 func concat(str string) string {
@@ -222,33 +221,38 @@ func main() {
 	c := make(chan string)
 	fileServer := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fileServer)
-	http.HandleFunc("/health", SiteCheck("localhost:8080/health",c))
+	http.HandleFunc("/health", SiteCheck("localhost:8080/health", c))
 	http.HandleFunc("/string/manipulation", manipulationHandler)
 	http.HandleFunc("/calculate/area", areaHandler)
 
-	for {
-		SiteCheck("localhost:8080/health",c)
-	}
-	_, err := http.Get("http://localhost:8080")
-	for link := range c{
-		if err != nil{
-			go func(l string){
-				time.Sleep(5 * time.Second)
-				SiteCheck(l,c)
-			}(link)
-		}
-	}
-		
+	// for {
+	// 	SiteCheck("localhost:8080/health",c)
+	// }
+	// _, err := http.Get("http://localhost:8080")
+	// for link := range c{
+	// 	if err != nil{
+	// 		go func(l string){
+	// 			time.Sleep(5 * time.Second)
+	// 			SiteCheck(l,c)
+	// 		}(link)
+	// 	}
+	// }
 
 	fmt.Println("Starting server at port 8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
 
+	// _, err := http.Get("localhost:8080")
+	// if err != nil {
+	// 	fmt.Println("Error")
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("OK")
 }
 
-func SiteCheck(link string, c chan string) func(http.ResponseWriter, *http.Request){
-	return func(w http.ResponseWriter, r *http.Request){
+func SiteCheck(link string, c chan string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/health" {
 			http.Error(w, "404 not found", http.StatusNotFound)
 			fmt.Println("404 not found!")
@@ -258,7 +262,7 @@ func SiteCheck(link string, c chan string) func(http.ResponseWriter, *http.Reque
 		if r.Method != "GET" {
 			http.Error(w, "Method is not supported", http.StatusNotFound)
 			fmt.Println("404 not found!")
-			c <-link 
+			c <- link
 			return
 		}
 		fmt.Fprint(w, "Content Not Found : ", http.StatusNoContent)
