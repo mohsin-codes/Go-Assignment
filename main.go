@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	// "time"
+	"sync"
+	"time"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -217,55 +218,72 @@ func areaHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+var wg sync.WaitGroup
+
 func main() {
-	c := make(chan string)
 	fileServer := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fileServer)
-	http.HandleFunc("/health", SiteCheck("localhost:8080/health", c))
+	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/string/manipulation", manipulationHandler)
 	http.HandleFunc("/calculate/area", areaHandler)
 
-	// for {
-	// 	SiteCheck("localhost:8080/health",c)
-	// }
-	// _, err := http.Get("http://localhost:8080")
-	// for link := range c{
-	// 	if err != nil{
-	// 		go func(l string){
-	// 			time.Sleep(5 * time.Second)
-	// 			SiteCheck(l,c)
-	// 		}(link)
-	// 	}
-	// }
+	//add waitgroup here
+	wg.Add(1)
+	c := make(chan string)
+	wg.Add(1)
+	c1 := make(chan string)
+
+	go siteStatus(c)
+	go healthSiteChecker(c1)
 
 	fmt.Println("Starting server at port 8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
+	c <- "Stop"
+	c1 <- "Stop"
 
-	// _, err := http.Get("localhost:8080")
-	// if err != nil {
-	// 	fmt.Println("Error")
-	// 	fmt.Println(err)
-	// }
-	// fmt.Println("OK")
+	// wait for waitgroup here
+	wg.Wait()
+	wg.Wait()
 }
 
-func SiteCheck(link string, c chan string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/health" {
-			http.Error(w, "404 not found", http.StatusNotFound)
-			fmt.Println("404 not found!")
-			c <- link
+func siteStatus(c chan string) {
+	for {
+		select {
+		case <-c:
+			//return waitgroup from here
+			wg.Done()
 			return
+
+		default:
+			_, err := http.Get("http://localhost:8080/")
+			if err != nil {
+				fmt.Println("Error: ", err)
+				time.Sleep(time.Second * 2)
+				continue
+			}
 		}
-		if r.Method != "GET" {
-			http.Error(w, "Method is not supported", http.StatusNotFound)
-			fmt.Println("404 not found!")
-			c <- link
+
+		fmt.Println("The site is Up!")
+		time.Sleep(time.Second * 2)
+	}
+}
+
+func healthSiteChecker(c1 chan string) {
+	for {
+		select {
+		case <-c1:
+			wg.Done()
 			return
+		default:
+			_, err := http.Get("http://localhost:8080/health")
+			if err != nil {
+				fmt.Println("404 Not Found")
+				time.Sleep(time.Second * 2)
+			}
+			fmt.Println("Content Not Found :  204")
+			time.Sleep(time.Second * 2)
 		}
-		fmt.Fprint(w, "Content Not Found : ", http.StatusNoContent)
-		c <- link
 	}
 }
